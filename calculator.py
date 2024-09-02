@@ -1,18 +1,18 @@
 import math
 import statistics as stats
 
-trigonometric_functions = "(sin, cos, tan, cot, asin, acos, atan)"
+trigonometric_functions_prompt = "(sin, cos, tan, cot, asin, acos, atan)"
 statistical_functions_prompt = "(mean, mode, median, standard deviation, variance)"
 
 menu_prompt = f"""1. Basic Operations(addition, subtraction, multiplication division)
 2. Exponentiation
 3. Roots
-4. Trigonometric Functions {trigonometric_functions}
+4. Trigonometric Functions {trigonometric_functions_prompt}
 5. Statistical Functions {statistical_functions_prompt}: """
 
 menu_option = input(
     f"""Write the index of the calculation option you want to do. Enter menu anytime you want to select option from
-the calculator menu. Enter quit() anytime you want to exit. \n\n{menu_prompt}"""
+the calculator menu. Enter ctrl + c anytime you want to exit. \n\n{menu_prompt}"""
 )
 
 def show_menu():
@@ -42,6 +42,7 @@ while True:
             continue
         print(base**exponent)
     elif menu_option == "3":
+
         number = get_numerical_input("Enter the number you'd like to find the root of: ")
         if number is None:
             continue
@@ -51,12 +52,13 @@ while True:
 
         print(number ** (1/root_degree))
     elif menu_option == "4":
-        trigonometric_function_type = input(f"""Enter the trigonometric function you want to calculate {trigonometric_functions}: """)
-        if trigonometric_function_type == "menu":
+
+        selected_trigonometric_functions = input(f"Enter the trigonometric function you want to calculate {trigonometric_functions_prompt}"
+                    "Separate functions using commas if using more then one function(e.g., sin, cos, cot): ").split()
+        
+        if selected_trigonometric_functions == "menu":
             show_menu()
             continue
-        elif trigonometric_function_type not in ("sin", "cos", "tan", "asin", "acos", "atan"):
-            trigonometric_function_type = input('Invalid input: Enter either "sin", "cos", "tan", "asin", "acos", "atan": ')
 
         angle_unit_choise = input('Enter the angle unit (radians or degrees): ')
         if angle_unit_choise not in ('radians', 'degrees'):
@@ -71,26 +73,12 @@ while True:
         if angle_unit_choise == 'degrees':
             angle = math.radians(angle)
         
-        if trigonometric_function_type == 'sin':
-            print(math.sin(angle))
-        elif trigonometric_function_type == 'cos':
-            print(math.cos(angle))
-        elif trigonometric_function_type == 'tan':
-            print(math.tan(angle))
-        elif trigonometric_function_type == 'cot':
-            print(1 / math.tan(angle))
-        elif trigonometric_function_type == 'asin':
-            if -1 <= angle <= 1:
-                print(math.asin(angle))
-            else:
-                print('"Error: Input value is out of range for asin function."')
-        elif trigonometric_function_type == 'acos':
-            if -1 <= angle <= 1:
-                print(math.asin(angle))
-            else:
-                print("Error: Input value is out of range for acos function.")
-        elif trigonometric_function_type == 'atan':
-            print(math.atan(angle))
+        for function in selected_trigonometric_functions:
+            try:
+                print(function, ' - ', getattr(math, function.strip())(angle))
+            except Exception as e:
+                print(f'Invalid input: {e}')        
+
     elif menu_option == "5":
 
         data = input(f"Provide values separated by comma (e.g., 10, 5, 8, 299): ")
@@ -100,30 +88,23 @@ while True:
             continue
 
         try:
-            data = [float(value) for value in data.split(',')]
-        except Exception as e:
-            print(f"Error: {e}")
+            data = [float(value) for value in data.split(',') if value.strip()]
+        except ValueError:
+            print("Error: Please ensure you've entered valid numbers separated by commas. Empty input or non-numeric values are not allowed")
+            continue
 
-        statisitcal_functions = {
-            'mean': stats.mean,
-            'median': stats.median,
-            'mode': stats.mode,
-            'variance': stats.variance,
-            'standard deviation': stats.stdev
-        }
-
-        selected_triginometric_function = input(f"Enter trigonometric function you want to calculate {statistical_functions_prompt}. "
+        selected_statistical_function = input(f"Enter statistical function you want to calculate {statistical_functions_prompt}. "
               "Separate functions using commas if using more then one function(e.g., mean, standard deviation): ")
         
-        if selected_triginometric_function == "menu":
+        if selected_statistical_function == "menu":
             show_menu()
             continue
 
-        for function in [value.strip() for value in selected_triginometric_function.split(',')]:
+        for function in [value.strip() for value in selected_statistical_function.split(',') if value.strip()]:
             try:
-                print(statisitcal_functions[function](data))
+                print(function, ' - ', getattr(stats, function)(data))
             except Exception as e:
-                print(e)
-
+                print(f'Invalid input: {e}. Please try again.')
+                
     else: 
         print('\nEnter valid option to continue')
