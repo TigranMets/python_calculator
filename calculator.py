@@ -7,8 +7,7 @@ import json
 INPUT_INSTRUCTION = "\nPlease enter the number corresponding to your choice: "
 TRIGONOMETRIC_FUNCTIONS_PROMPT = "(sin, cos, tan, cot, asin, acos, atan, acot)"
 STATISTICAL_FUNCTIONS_PROMPT = "(mean, mode, median, standard deviation, variance)"
-
-menu_prompt = f"""1. Basic Operations(addition, subtraction, multiplication division)
+MENU_PROMPT = f"""1. Basic Operations(addition, subtraction, multiplication division)
 2. Exponentiation
 3. Roots
 4. Trigonometric Functions {TRIGONOMETRIC_FUNCTIONS_PROMPT}
@@ -19,13 +18,13 @@ menu_prompt = f"""1. Basic Operations(addition, subtraction, multiplication divi
 
 menu_option = input(
     f"""Enter the index of the calculation option you want to do. Enter menu anytime you want to select option from
-the calculator menu. Enter ctrl + c anytime you want to exit. \n\n{menu_prompt}"""
+the calculator menu. Enter ctrl + c anytime you want to exit. \n\n{MENU_PROMPT}"""
 )
 
 
 def show_menu():
     global menu_option
-    menu_option = input(menu_prompt)
+    menu_option = input(MENU_PROMPT)
 
 
 def get_numerical_input(prompt):
@@ -33,7 +32,7 @@ def get_numerical_input(prompt):
         try:
             user_input = input(prompt)
 
-            if user_input == "menu":
+            if user_input.lower() == "menu":
                 show_menu()
                 break
             else:
@@ -100,14 +99,15 @@ while True:
         if root_degree is None:
             continue
 
-        commit_result(number ** (1/root_degree),
-                      f"The root of {number} with power {root_degree} ="
-                      )
+        commit_result(
+            number ** (1/root_degree),
+            f"The root of {number} with power {root_degree} ="
+        )
     elif menu_option == "4":
-        print(menu_option)
         selected_trigonometric_functions = input(
             f"Enter the trigonometric function you want to calculate {TRIGONOMETRIC_FUNCTIONS_PROMPT}"
-            " Separate functions using commas if using more then one function(e.g., sin, cos, cot): ").split(',')
+            " Separate functions using commas if using more then one function(e.g., sin, cos, cot): "
+        ).split(',')
 
         if 'menu' in selected_trigonometric_functions:
             show_menu()
@@ -120,27 +120,23 @@ while True:
         if angle_unit_choise == "menu":
             show_menu()
             continue
-        elif angle_unit_choise not in ('radians', 'degrees'):
-            angle_unit_choise = input(
-                'Invalid input: Enter either "radians" or "degrees": '
-            )
+        elif angle_unit_choise == 'degrees':
+            angle = math.radians(angle)
 
         angle = get_numerical_input('Enter the angle value: ')
         if angle is None:
             continue
-        elif type(angle) not in (int, float):
-            get_numerical_input('Enter valid angle value: ')
-
-        if angle_unit_choise == 'degrees':
-            angle = math.radians(angle)
 
         for function in selected_trigonometric_functions:
             try:
                 stripped_function = function.strip()
                 commit_result(
-                    stripped_function + ' = ' + str(1/math.tan(angle) if stripped_function == 'cot'
-                                                    else 1/math.tan(angle) if stripped_function == 'acot'
-                                                    else getattr(math, stripped_function)(angle)),
+                    stripped_function
+                    +
+                    ' = '
+                    + str(1/math.tan(angle) if stripped_function == 'cot'
+                          else 1/math.tan(angle) if stripped_function == 'acot'
+                          else getattr(math, stripped_function)(angle)),
                     f"{angle} {angle_unit_choise}"
                 )
             except Exception as e:
@@ -149,9 +145,10 @@ while True:
     elif menu_option == "5":
 
         data = input(
-            f"Provide values separated by comma (e.g., 10, 5, 8, 299): ")
+            f"Provide values separated by comma (e.g., 10, 5, 8, 299): "
+        )
 
-        if data == "menu":
+        if data.lower() == "menu":
             show_menu()
             continue
 
@@ -172,8 +169,10 @@ while True:
 
         for function in [value.strip() for value in selected_statistical_function.split(',') if value.strip()]:
             try:
-                commit_result(f"{function} - {getattr(stats, function)(data) if function != 'standard deviation' else stats.stdev(data)}",
-                              f"Data Set - {data}")
+                commit_result(
+                    f"{function} - {getattr(stats, function)(data) if function != 'standard deviation' else stats.stdev(data)}",
+                    f"Data Set - {data}"
+                )
             except Exception as e:
                 print(f'Invalid input: {e}. Please try again.')
 
@@ -202,7 +201,8 @@ while True:
             if conversion_option < 7:
                 while True:
                     value = get_numerical_input(
-                        "Enter the value you want to convert: ")
+                        "Enter the value you want to convert: "
+                    )
 
                     def convert_unit(conversion_data):
                         if conversion_option % 2:
@@ -289,7 +289,7 @@ while True:
             )
 
         elif conversion_option == '4':
-            temperature_convetion_option = get_numerical_input(
+            temperature_convetion_option = input(
                 "\nTemperature Conversion Options:"
                 "\n1. Celsius to Fahrenheit"
                 "\n2. Fahrenheit to Celsius"
@@ -300,40 +300,54 @@ while True:
                 INPUT_INSTRUCTION
             )
 
-            value = get_numerical_input(
-                "Enter the value you want to convert: ")
-
-            if temperature_convetion_option == 1:
-                commit_result(value * 1.8 + 32,
-                              f'{value} degrees Celsius to Fahrenheit =')
-            elif temperature_convetion_option == 2:
-                commit_result((value - 32) / 1.8,
-                              f'{value} degrees Fahrenheit to Celsius =')
-            elif temperature_convetion_option == 3:
-                commit_result(value - 273.15,
-                              f'{value} degrees Kelvin to Celsius =')
-            elif temperature_convetion_option == 4:
-                commit_result(value + 273.15,
-                              f'{value} degrees Celsius to Kelvin =')
-            elif temperature_convetion_option == 5:
-                commit_result((value - 273.15) * 1.8 + 32,
-                              f'{value} degrees Kelvin to Fahrenheit =')
-            elif temperature_convetion_option == 6:
-                commit_result((value + 459.67) / 1.8,
-                              f'{value} degrees Fahrenheit to Kelvin =')
-            elif temperature_convetion_option == "menu":
+            if temperature_convetion_option.lower() == "menu":
                 show_menu()
                 continue
+
+            value = get_numerical_input(
+                "Enter the value you want to convert: "
+            )
+
+            if temperature_convetion_option == "1":
+                commit_result(
+                    value * 1.8 + 32,
+                    f'{value} degrees Celsius to Fahrenheit ='
+                )
+            elif temperature_convetion_option == "2":
+                commit_result(
+                    (value - 32) / 1.8,
+                    f'{value} degrees Fahrenheit to Celsius ='
+                )
+            elif temperature_convetion_option == "3":
+                commit_result(
+                    value - 273.15,
+                    f'{value} degrees Kelvin to Celsius ='
+                )
+            elif temperature_convetion_option == "4":
+                commit_result(
+                    value + 273.15,
+                    f'{value} degrees Celsius to Kelvin ='
+                )
+            elif temperature_convetion_option == "5":
+                commit_result(
+                    (value - 273.15) * 1.8 + 32,
+                    f'{value} degrees Kelvin to Fahrenheit ='
+                )
+            elif temperature_convetion_option == "6":
+                commit_result(
+                    (value + 459.67) / 1.8,
+                    f'{value} degrees Fahrenheit to Kelvin ='
+                )
             else:
                 print('\nEnter valid option to continue')
         elif conversion_option == '5':
             base_currency = input(
-            "\nWrite the currency name you want to convert (e.g., US Dollar): "
+                "\nWrite the currency name you want to convert (e.g., US Dollar): "
             ).lower()
 
             matched_base_currency = next(
                 (key for key, value in currencies.items()
-                 if any(base_currency.strip() in currency.lower() for country, currency in value.items())),
+                 if any(base_currency.strip() in currency.lower() for currency in value.values())),
                 'USD'
             )
 
@@ -344,9 +358,9 @@ while True:
             ).lower().split(',')
 
             matched_quote_currencies = ','.join([
-                key for key, country_currency in currencies.items()
+                currency_code for currency_code, currency_country in currencies.items()
                 if any(search_text.strip() in currency.lower() for search_text in quote_currencies
-                       for country, currency in country_currency.items())
+                       for currency in currency_country.values())
             ])
 
             if matched_quote_currencies:
@@ -365,7 +379,7 @@ while True:
                                   f"{amount} {base_currency.title()} = ")
 
                 conn.close()
-            else: 
+            else:
                 print('No matching currencies found. Please try again.')
         else:
             print('\nEnter valid option to continue')
@@ -375,27 +389,26 @@ while True:
             line_number = 0
             for line in file.readlines()[2:]:
                 line_number += 1
-                print(f'\n{line_number}. {line}\n')
+                print(f'{line_number}. {line}\n')
         show_menu()
 
     elif menu_option == "8":
         settings_option = input(
             "\n1. Enable history"
             "\n2. Disable history"
-            "\n3. Set the limit of history items to keep(e.g., 10, 35, 100)"
-            "\n4. Exit settings" +
+            "\n3. Set the limit of history items to keep(e.g., 10, 35, 100)" +
             INPUT_INSTRUCTION
         )
 
-        if settings_option in ("4", "menu"):
+        if settings_option.lower() == "menu":
             show_menu()
+            continue
         else:
             with open('calculation_history.txt', "r+") as file:
                 lines = file.readlines()
 
                 def file_reset_and_update(update_message):
                     file.seek(0)
-                    print(lines)
                     file.truncate()
                     file.writelines(lines)
                     print(update_message)
@@ -408,7 +421,7 @@ while True:
                     file_reset_and_update('The history is disabled!')
                 elif settings_option == "3":
                     limit = str(get_numerical_input('Enter the limit: '))
-                    lines[1] = limit
+                    lines[1] = limit + '\n'
                     file_reset_and_update(f'Limit successfully set to {limit}')
                 else:
                     print('\nEnter valid option to continue')
