@@ -1,16 +1,19 @@
 import math
 import statistics as stats
+from currencies_dictionary import currencies
+import http.client
+import json
 
-trigonometric_functions_prompt = "(sin, cos, tan, cot, asin, acos, atan, acot)"
-statistical_functions_prompt = "(mean, mode, median, standard deviation, variance)"
-input_instruction = "\nPlease enter the number corresponding to your choice: "
+INPUT_INSTRUCTION = "\nPlease enter the number corresponding to your choice: "
+TRIGONOMETRIC_FUNCTIONS_PROMPT = "(sin, cos, tan, cot, asin, acos, atan, acot)"
+STATISTICAL_FUNCTIONS_PROMPT = "(mean, mode, median, standard deviation, variance)"
 
 menu_prompt = f"""1. Basic Operations(addition, subtraction, multiplication division)
 2. Exponentiation
 3. Roots
-4. Trigonometric Functions {trigonometric_functions_prompt}
-5. Statistical Functions {statistical_functions_prompt}
-6. Unit Conversion (e.g., length, weight, temperature)
+4. Trigonometric Functions {TRIGONOMETRIC_FUNCTIONS_PROMPT}
+5. Statistical Functions {STATISTICAL_FUNCTIONS_PROMPT}
+6. Conversions (e.g., length, weight, temperature, currency)
 7. History
 8. Settings: """
 
@@ -37,6 +40,17 @@ def get_numerical_input(prompt):
                 return eval(user_input)
         except Exception as e:
             print(f"Invalid input: {e}. Please try again.")
+
+
+def get_input(prompt):
+    while True:
+        user_input = input(prompt)
+
+        if user_input == "menu":
+            show_menu()
+            break
+        else:
+            return user_input
 
 
 def commit_result(result, expression):
@@ -90,9 +104,9 @@ while True:
                       f"The root of {number} with power {root_degree} ="
                       )
     elif menu_option == "4":
-
+        print(menu_option)
         selected_trigonometric_functions = input(
-            f"Enter the trigonometric function you want to calculate {trigonometric_functions_prompt}"
+            f"Enter the trigonometric function you want to calculate {TRIGONOMETRIC_FUNCTIONS_PROMPT}"
             " Separate functions using commas if using more then one function(e.g., sin, cos, cot): ").split(',')
 
         if 'menu' in selected_trigonometric_functions:
@@ -148,7 +162,7 @@ while True:
             continue
 
         selected_statistical_function = input(
-            f"Enter statistical function you want to calculate {statistical_functions_prompt}. "
+            f"Enter statistical function you want to calculate {STATISTICAL_FUNCTIONS_PROMPT}. "
             "Separate functions using commas if using more then one function(e.g., mean, standard deviation): "
         )
 
@@ -165,22 +179,25 @@ while True:
 
     elif menu_option == "6":
 
-        unit_conversion_option = input(
+        conversion_option = input(
             "\nUnit Conversion Options:"
             "\n1. Length (e.g., meters to feet)"
             "\n2. Weight (e.g., kilograms to pounds)"
             "\n3. Volume (e.g., liters to gallons)"
-            "\n4. Temperature (e.g., Celsius to Fahrenheit)" +
-            input_instruction
+            "\n4. Temperature (e.g., Celsius to Fahrenheit)"
+            "\n5. Currency (e.g., USD to AMD)" +
+            INPUT_INSTRUCTION
         )
 
-        if unit_conversion_option == "menu":
+        if conversion_option == "menu":
             show_menu()
             continue
 
         def unit_conversion(conversion_option_prompt, conversion_data):
 
-            conversion_option = get_numerical_input(conversion_option_prompt)
+            conversion_option = get_numerical_input(
+                conversion_option_prompt + INPUT_INSTRUCTION
+            )
 
             if conversion_option < 7:
                 while True:
@@ -211,7 +228,7 @@ while True:
             else:
                 print('\nEnter valid option to continue')
 
-        if unit_conversion_option == '1':
+        if conversion_option == '1':
 
             unit_conversion(
                 "\nEnter the index of length conversion Options:"
@@ -220,8 +237,7 @@ while True:
                 "\n3. Kilometers to Miles"
                 "\n4. Miles to Kilometers"
                 "\n5. Centimeters to Inches"
-                "\n6. Inches to Centimeters" +
-                input_instruction,
+                "\n6. Inches to Centimeters",
                 [
                     {'firstUnit': 'meters', 'secondUnit': 'feet',
                         'conversionFactor': 3.28084},
@@ -232,7 +248,7 @@ while True:
                 ]
             )
 
-        elif unit_conversion_option == '2':
+        elif conversion_option == '2':
 
             unit_conversion(
                 "\nWeight Conversion Options:"
@@ -241,8 +257,7 @@ while True:
                 "\n3. Grams to Ounces"
                 "\n4. Ounces to Grams"
                 "\n5. Stones to Kilograms"
-                "\n6. Kilograms to Stones" +
-                input_instruction,
+                "\n6. Kilograms to Stones",
                 [
                     {'firstUnit': 'kilograms', 'secondUnit': 'pounds',
                         'conversionFactor': 2.2},
@@ -253,7 +268,7 @@ while True:
                 ]
             )
 
-        elif unit_conversion_option == '3':
+        elif conversion_option == '3':
 
             unit_conversion(
                 "\nVolume Conversion Options:"
@@ -262,8 +277,7 @@ while True:
                 "\n3. Milliliters to Fluid Ounces"
                 "\n4. Fluid Ounces to Milliliters"
                 "\n5. Cubic Meters to Liters"
-                "\n6. Liters to Cubic Meters" +
-                input_instruction,
+                "\n6. Liters to Cubic Meters",
                 [
                     {'firstUnit': 'liters', 'secondUnit': 'gallons',
                      'conversionFactor': 0.264172},
@@ -274,9 +288,8 @@ while True:
                 ]
             )
 
-        elif unit_conversion_option == '4':
-
-            temperature_convetion_option_prompt = (
+        elif conversion_option == '4':
+            temperature_convetion_option = get_numerical_input(
                 "\nTemperature Conversion Options:"
                 "\n1. Celsius to Fahrenheit"
                 "\n2. Fahrenheit to Celsius"
@@ -284,11 +297,7 @@ while True:
                 "\n4. Celsius to Kelvin"
                 "\n5. Kelvin to Fahrenheit"
                 "\n6. Fahrenheit to Kelvin" +
-                input_instruction
-            )
-
-            temperature_convetion_option = get_numerical_input(
-                temperature_convetion_option_prompt
+                INPUT_INSTRUCTION
             )
 
             value = get_numerical_input(
@@ -315,7 +324,49 @@ while True:
             elif temperature_convetion_option == "menu":
                 show_menu()
                 continue
+            else:
+                print('\nEnter valid option to continue')
+        elif conversion_option == '5':
+            base_currency = input(
+            "\nWrite the currency name you want to convert (e.g., US Dollar): "
+            ).lower()
 
+            matched_base_currency = next(
+                (key for key, value in currencies.items()
+                 if any(base_currency.strip() in currency.lower() for country, currency in value.items())),
+                'USD'
+            )
+
+            amount = get_numerical_input('\nEnter the amount: ')
+
+            quote_currencies = input(
+                '\nWrite the names of the currencies you want to convert to, separated by commas(e.g., dram, East Caribbean Dollar, Mexican Peso): '
+            ).lower().split(',')
+
+            matched_quote_currencies = ','.join([
+                key for key, country_currency in currencies.items()
+                if any(search_text.strip() in currency.lower() for search_text in quote_currencies
+                       for country, currency in country_currency.items())
+            ])
+
+            if matched_quote_currencies:
+                conn = http.client.HTTPSConnection("openexchangerates.org")
+
+                conn.request(
+                    "GET",
+                    f"/api/latest.json?app_id=99c063e4313747869864128d6b993d43&base=USD&currencies={matched_quote_currencies + ',' + matched_base_currency}"
+                )
+
+                rates = json.loads(conn.getresponse().read().decode())['rates']
+
+                for currency_code, value in rates.items():
+                    currency_name = list(currencies[currency_code].values())[0]
+                    commit_result(f"{value / rates[matched_base_currency] * amount} {currency_name}",
+                                  f"{amount} {base_currency.title()} = ")
+
+                conn.close()
+            else: 
+                print('No matching currencies found. Please try again.')
         else:
             print('\nEnter valid option to continue')
 
@@ -333,7 +384,7 @@ while True:
             "\n2. Disable history"
             "\n3. Set the limit of history items to keep(e.g., 10, 35, 100)"
             "\n4. Exit settings" +
-            input_instruction
+            INPUT_INSTRUCTION
         )
 
         if settings_option in ("4", "menu"):
@@ -342,25 +393,23 @@ while True:
             with open('calculation_history.txt', "r+") as file:
                 lines = file.readlines()
 
-                def file_reset_and_update():
+                def file_reset_and_update(update_message):
                     file.seek(0)
                     print(lines)
                     file.truncate()
                     file.writelines(lines)
+                    print(update_message)
 
                 if settings_option == "1":
                     lines[0] = 'True\n'
-                    file_reset_and_update()
-                    print('The history is enabled!')
+                    file_reset_and_update('The history is enabled!')
                 elif settings_option == "2":
                     lines[0] = 'False\n'
-                    file_reset_and_update()
-                    print('The history is disabled!')
+                    file_reset_and_update('The history is disabled!')
                 elif settings_option == "3":
                     limit = str(get_numerical_input('Enter the limit: '))
                     lines[1] = limit
-                    file_reset_and_update()
-                    print(f'Limit successfully set to {limit}')
+                    file_reset_and_update(f'Limit successfully set to {limit}')
                 else:
                     print('\nEnter valid option to continue')
     else:
